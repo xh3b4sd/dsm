@@ -9,6 +9,7 @@ import (
 )
 
 type runner struct {
+	flag   *flag
 	logger logger.Interface
 }
 

@@ -1,12 +1,13 @@
-package parser
+package searcher
 
 import (
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/afero"
-	"github.com/xh3b4sd/dsm/pkg/path"
 	"github.com/xh3b4sd/tracer"
+
+	"github.com/xh3b4sd/dsm/pkg/path"
 )
 
 type Config struct {
@@ -17,7 +18,7 @@ type Config struct {
 	Source   string
 }
 
-type Parser struct {
+type Searcher struct {
 	fileSystem afero.Fs
 
 	name     string
@@ -25,7 +26,7 @@ type Parser struct {
 	source   string
 }
 
-func New(config Config) (*Parser, error) {
+func New(config Config) (*Searcher, error) {
 	if config.FileSystem == nil {
 		return nil, tracer.Maskf(invalidConfigError, "%T.FileSystem must not be empty", config)
 	}
@@ -40,7 +41,7 @@ func New(config Config) (*Parser, error) {
 		return nil, tracer.Maskf(invalidConfigError, "%T.Source must not be empty", config)
 	}
 
-	p := &Parser{
+	s := &Searcher{
 		fileSystem: config.FileSystem,
 
 		name:     config.Name,
@@ -48,21 +49,21 @@ func New(config Config) (*Parser, error) {
 		source:   config.Source,
 	}
 
-	return p, nil
+	return s, nil
 }
 
-func (p *Parser) Search() (map[string][]byte, error) {
-	files, err := p.files(".yaml")
+func (s *Searcher) Search() (map[string][]byte, error) {
+	files, err := s.files(".yaml")
 	if err != nil {
 		return nil, tracer.Mask(err)
 	}
 
 	filtered := map[string][]byte{}
-	for f, c := range files {
+	for p, b := range files {
 		var newPath *path.Path
 		{
 			c := path.Config{
-				Bytes: c,
+				Bytes: b,
 			}
 
 			newPath, err = path.New(c)
@@ -77,7 +78,7 @@ func (p *Parser) Search() (map[string][]byte, error) {
 				return nil, tracer.Mask(err)
 			}
 
-			if v != p.name {
+			if v != s.name {
 				continue
 			}
 		}
@@ -88,18 +89,18 @@ func (p *Parser) Search() (map[string][]byte, error) {
 				return nil, tracer.Mask(err)
 			}
 
-			if v != p.resource {
+			if v != s.resource {
 				continue
 			}
 		}
 
-		filtered[f] = c
+		filtered[p] = b
 	}
 
 	return filtered, nil
 }
 
-func (p *Parser) files(exts ...string) (map[string][]byte, error) {
+func (s *Searcher) files(exts ...string) (map[string][]byte, error) {
 	files := map[string][]byte{}
 	{
 		walkFunc := func(r string, i os.FileInfo, err error) error {
@@ -130,19 +131,19 @@ func (p *Parser) files(exts ...string) (map[string][]byte, error) {
 				}
 			}
 
-			f := filepath.Join(filepath.Dir(r), i.Name())
+			p := filepath.Join(filepath.Dir(r), i.Name())
 
-			b, err := afero.ReadFile(p.fileSystem, f)
+			b, err := afero.ReadFile(s.fileSystem, p)
 			if err != nil {
 				return tracer.Mask(err)
 			}
 
-			files[f] = b
+			files[p] = b
 
 			return nil
 		}
 
-		err := afero.Walk(p.fileSystem, p.source, walkFunc)
+		err := afero.Walk(s.fileSystem, s.source, walkFunc)
 		if err != nil {
 			return nil, tracer.Mask(err)
 		}

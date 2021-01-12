@@ -9,8 +9,8 @@ import (
 	"github.com/xh3b4sd/logger"
 	"github.com/xh3b4sd/tracer"
 
-	"github.com/xh3b4sd/dsm/pkg/parser"
 	"github.com/xh3b4sd/dsm/pkg/path"
+	"github.com/xh3b4sd/dsm/pkg/searcher"
 )
 
 type runner struct {
@@ -37,9 +37,9 @@ func (r *runner) Run(cmd *cobra.Command, args []string) error {
 func (r *runner) run(ctx context.Context, cmd *cobra.Command, args []string) error {
 	var err error
 
-	var p *parser.Parser
+	var s *searcher.Searcher
 	{
-		c := parser.Config{
+		c := searcher.Config{
 			FileSystem: afero.NewOsFs(),
 
 			Name:     r.flag.Name,
@@ -47,7 +47,7 @@ func (r *runner) run(ctx context.Context, cmd *cobra.Command, args []string) err
 			Source:   r.flag.Source,
 		}
 
-		p, err = parser.New(c)
+		s, err = searcher.New(c)
 		if err != nil {
 			return tracer.Mask(err)
 		}
@@ -55,17 +55,17 @@ func (r *runner) run(ctx context.Context, cmd *cobra.Command, args []string) err
 
 	var m map[string][]byte
 	{
-		m, err = p.Search()
+		m, err = s.Search()
 		if err != nil {
 			return tracer.Mask(err)
 		}
 	}
 
-	for _, c := range m {
+	for _, b := range m {
 		var newPath *path.Path
 		{
 			c := path.Config{
-				Bytes: c,
+				Bytes: b,
 			}
 
 			newPath, err = path.New(c)

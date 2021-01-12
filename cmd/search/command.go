@@ -9,9 +9,19 @@ import (
 const (
 	name  = "search"
 	short = "Search for values within YAML or JSON data structures."
-	long  = `Search for values within YAML or JSON data structures. Given a HelmRelease CR
-defining a Docker image tag in its spec, the following example shows how to
-extract the image tag from the YAML file.
+	long  = `Search for values within YAML or JSON data structures. Consider the following HelmRelease CR
+defining a Docker image tag in its spec
+
+    apiVersion: "helm.toolkit.fluxcd.io/v2beta1"
+    kind: "HelmRelease"
+    metadata:
+      name: "apiserver"
+    spec:
+      values:
+        image:
+          tag: "8469445410f8a74d72af0cf430ed8dd44fb6b8fa"
+
+The following example shows how to extract the image tag from the YAML file.
 
     $ dsm search -r HelmRelease -n apiserver -k spec.values.image.tag
     8469445410f8a74d72af0cf430ed8dd44fb6b8fa

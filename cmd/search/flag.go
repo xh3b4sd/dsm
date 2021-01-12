@@ -10,7 +10,6 @@ type flag struct {
 	Name     string
 	Resource string
 	Source   string
-	Value    string
 }
 
 func (f *flag) Init(cmd *cobra.Command) {
@@ -18,7 +17,6 @@ func (f *flag) Init(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&f.Name, "name", "n", "", "Metadata name of the resources to work with.")
 	cmd.Flags().StringVarP(&f.Resource, "resource", "r", "", "Resource kind to work with.")
 	cmd.Flags().StringVarP(&f.Source, "source", "s", ".", "Source directory to traverse.")
-	cmd.Flags().StringVarP(&f.Value, "value", "v", "", "JSON path value to work with.")
 }
 
 func (f *flag) Validate() error {
@@ -43,12 +41,6 @@ func (f *flag) Validate() error {
 	{
 		if f.Source == "" {
 			return tracer.Maskf(invalidFlagError, "-s/--source must not be empty")
-		}
-	}
-
-	{
-		if f.Value == "" {
-			return tracer.Maskf(invalidFlagError, "-v/--value must not be empty")
 		}
 	}
 

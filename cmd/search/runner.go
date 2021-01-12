@@ -2,6 +2,7 @@ package search
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -9,6 +10,7 @@ import (
 	"github.com/xh3b4sd/tracer"
 
 	"github.com/xh3b4sd/dsm/pkg/parser"
+	"github.com/xh3b4sd/dsm/pkg/path"
 )
 
 type runner struct {
@@ -40,7 +42,9 @@ func (r *runner) run(ctx context.Context, cmd *cobra.Command, args []string) err
 		c := parser.Config{
 			FileSystem: afero.NewOsFs(),
 
-			Source: r.flag.Source,
+			Name:     r.flag.Name,
+			Resource: r.flag.Resource,
+			Source:   r.flag.Source,
 		}
 
 		p, err = parser.New(c)
@@ -49,11 +53,33 @@ func (r *runner) run(ctx context.Context, cmd *cobra.Command, args []string) err
 		}
 	}
 
+	var m map[string][]byte
 	{
-		err = p.Search()
+		m, err = p.Search()
 		if err != nil {
 			return tracer.Mask(err)
 		}
+	}
+
+	for _, c := range m {
+		var newPath *path.Path
+		{
+			c := path.Config{
+				Bytes: c,
+			}
+
+			newPath, err = path.New(c)
+			if err != nil {
+				return tracer.Mask(err)
+			}
+		}
+
+		v, err := newPath.Get(r.flag.Key)
+		if err != nil {
+			return tracer.Mask(err)
+		}
+
+		fmt.Printf("%s\n", v)
 	}
 
 	return nil

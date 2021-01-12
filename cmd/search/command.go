@@ -8,8 +8,14 @@ import (
 
 const (
 	name  = "search"
-	short = "Create a dependabot workflow for e.g. golang and docker."
-	long  = "Create a dependabot workflow for e.g. golang and docker."
+	short = "Search for values within YAML or JSON data structures."
+	long  = `Search for values within YAML or JSON data structures. Given a HelmRelease CR
+defining a Docker image tag in its spec, the following example shows how to
+extract the image tag from the YAML file.
+
+    $ dsm search -r HelmRelease -n apiserver -k spec.values.image.tag
+    8469445410f8a74d72af0cf430ed8dd44fb6b8fa
+`
 )
 
 type Config struct {

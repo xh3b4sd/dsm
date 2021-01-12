@@ -1,24 +1,28 @@
 package parser
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/afero"
+	"github.com/xh3b4sd/dsm/pkg/path"
 	"github.com/xh3b4sd/tracer"
 )
 
 type Config struct {
 	FileSystem afero.Fs
 
-	Source string
+	Name     string
+	Resource string
+	Source   string
 }
 
 type Parser struct {
 	fileSystem afero.Fs
 
-	source string
+	name     string
+	resource string
+	source   string
 }
 
 func New(config Config) (*Parser, error) {
@@ -26,6 +30,12 @@ func New(config Config) (*Parser, error) {
 		return nil, tracer.Maskf(invalidConfigError, "%T.FileSystem must not be empty", config)
 	}
 
+	if config.Name == "" {
+		return nil, tracer.Maskf(invalidConfigError, "%T.Name must not be empty", config)
+	}
+	if config.Resource == "" {
+		return nil, tracer.Maskf(invalidConfigError, "%T.Resource must not be empty", config)
+	}
 	if config.Source == "" {
 		return nil, tracer.Maskf(invalidConfigError, "%T.Source must not be empty", config)
 	}
@@ -33,31 +43,66 @@ func New(config Config) (*Parser, error) {
 	p := &Parser{
 		fileSystem: config.FileSystem,
 
-		source: config.Source,
+		name:     config.Name,
+		resource: config.Resource,
+		source:   config.Source,
 	}
 
 	return p, nil
 }
 
-func (p *Parser) Search() error {
-	files, err := p.files(".proto")
+func (p *Parser) Search() (map[string][]byte, error) {
+	files, err := p.files(".yaml")
 	if err != nil {
-		return tracer.Mask(err)
+		return nil, tracer.Mask(err)
 	}
 
-	for p, c := range files {
-		fmt.Printf("%#v\n", p)
-		fmt.Printf("%#v\n", c)
-		fmt.Printf("\n")
+	filtered := map[string][]byte{}
+	for f, c := range files {
+		var newPath *path.Path
+		{
+			c := path.Config{
+				Bytes: c,
+			}
+
+			newPath, err = path.New(c)
+			if err != nil {
+				return nil, tracer.Mask(err)
+			}
+		}
+
+		{
+			v, err := newPath.Get("metadata.name")
+			if err != nil {
+				return nil, tracer.Mask(err)
+			}
+
+			if v != p.name {
+				continue
+			}
+		}
+
+		{
+			v, err := newPath.Get("kind")
+			if err != nil {
+				return nil, tracer.Mask(err)
+			}
+
+			if v != p.resource {
+				continue
+			}
+		}
+
+		filtered[f] = c
 	}
 
-	return nil
+	return filtered, nil
 }
 
-func (p *Parser) files(exts ...string) (map[string][]string, error) {
-	files := map[string][]string{}
+func (p *Parser) files(exts ...string) (map[string][]byte, error) {
+	files := map[string][]byte{}
 	{
-		walkFunc := func(p string, i os.FileInfo, err error) error {
+		walkFunc := func(r string, i os.FileInfo, err error) error {
 			if err != nil {
 				return tracer.Mask(err)
 			}
@@ -85,7 +130,14 @@ func (p *Parser) files(exts ...string) (map[string][]string, error) {
 				}
 			}
 
-			files[filepath.Dir(p)] = append(files[filepath.Dir(p)], filepath.Join(filepath.Dir(p), i.Name()))
+			f := filepath.Join(filepath.Dir(r), i.Name())
+
+			b, err := afero.ReadFile(p.fileSystem, f)
+			if err != nil {
+				return tracer.Mask(err)
+			}
+
+			files[f] = b
 
 			return nil
 		}

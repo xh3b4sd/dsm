@@ -8,8 +8,23 @@ import (
 
 const (
 	name  = "update"
-	short = "Update all github workflows to the latest version."
-	long  = "Update all github workflows to the latest version."
+	short = "Update values within YAML or JSON data structures."
+	long  = `Update values within YAML or JSON data structures. Consider the following HelmRelease CR
+defining a Docker image tag in its spec
+
+    apiVersion: "helm.toolkit.fluxcd.io/v2beta1"
+    kind: "HelmRelease"
+    metadata:
+      name: "apiserver"
+    spec:
+      values:
+        image:
+          tag: "8469445410f8a74d72af0cf430ed8dd44fb6b8fa"
+
+The following example shows how to modify the image tag of the YAML file.
+
+    dsm update -r HelmRelease -n apiserver -k spec.values.image.tag -v <new-sha>
+`
 )
 
 type Config struct {

@@ -1,6 +1,7 @@
 package searcher
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 
@@ -74,7 +75,9 @@ func (s *Searcher) Search() (map[string][]byte, error) {
 
 		{
 			v, err := newPath.Get("metadata.name")
-			if err != nil {
+			if path.IsNotFound(err) {
+				continue
+			} else if err != nil {
 				return nil, tracer.Mask(err)
 			}
 
@@ -138,7 +141,9 @@ func (s *Searcher) files(exts ...string) (map[string][]byte, error) {
 				return tracer.Mask(err)
 			}
 
-			files[p] = b
+			for _, s := range bytes.Split(b, []byte("---")) {
+				files[p] = s
+			}
 
 			return nil
 		}

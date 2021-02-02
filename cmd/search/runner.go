@@ -3,6 +3,7 @@ package search
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -53,15 +54,24 @@ func (r *runner) run(ctx context.Context, cmd *cobra.Command, args []string) err
 		}
 	}
 
-	var m map[string][]byte
+	var f map[string][]byte
+	var l []string
 	{
-		m, err = s.Search()
+		f, err = s.Search()
 		if err != nil {
 			return tracer.Mask(err)
 		}
+
+		for k := range f {
+			l = append(l, k)
+		}
+
+		sort.Strings(l)
 	}
 
-	for _, b := range m {
+	for _, p := range l {
+		b := f[p]
+
 		var newPath *path.Path
 		{
 			c := path.Config{

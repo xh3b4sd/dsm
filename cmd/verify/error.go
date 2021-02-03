@@ -29,3 +29,12 @@ var invalidValueError = &tracer.Error{
 func IsInvalidValue(err error) bool {
 	return errors.Is(err, invalidValueError)
 }
+
+var notFoundError = &tracer.Error{
+	Kind: "notFoundError",
+	Desc: "When verifying the consistency of values across multiple files, there must be at least one file found. This error is caused by no files being found given the provided flags. Check if there are typos in the query and that the command is being executed against the correct directory.",
+}
+
+func IsNotFound(err error) bool {
+	return errors.Is(err, notFoundError)
+}

@@ -60,6 +60,10 @@ func (r *runner) run(ctx context.Context, cmd *cobra.Command, args []string) err
 		}
 	}
 
+	if len(f) == 0 {
+		return tracer.Mask(notFoundError)
+	}
+
 	var x interface{}
 	for _, b := range f {
 		var newPath *path.Path

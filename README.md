@@ -93,7 +93,7 @@ Flags:
 $ dsm verify -h
 Verify the consistency of values within YAML or JSON data structures.
 Consider multiple of the following HelmRelease CRs defining a Docker image
-tag in its spec
+tag in its spec.
 
     apiVersion: "helm.toolkit.fluxcd.io/v2beta1"
     kind: "HelmRelease"

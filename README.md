@@ -17,6 +17,7 @@ Available Commands:
   help        Help about any command
   search      Search for values within YAML or JSON data structures.
   update      Update values within YAML or JSON data structures.
+  verify      Verify the consistency of values within YAML or JSON data structures.
   version     Print version information of this command line tool.
 
 Flags:
@@ -88,6 +89,8 @@ Flags:
   -s, --source string     Source directory to traverse. (default ".")
   -v, --value string      JSON path value to work with.
 ```
+
+
 
 ```
 $ dsm verify -h

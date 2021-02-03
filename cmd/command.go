@@ -8,6 +8,7 @@ import (
 	"github.com/xh3b4sd/dsm/cmd/completion"
 	"github.com/xh3b4sd/dsm/cmd/search"
 	"github.com/xh3b4sd/dsm/cmd/update"
+	"github.com/xh3b4sd/dsm/cmd/verify"
 	"github.com/xh3b4sd/dsm/cmd/version"
 	"github.com/xh3b4sd/dsm/pkg/project"
 )
@@ -48,6 +49,18 @@ func New(config Config) (*cobra.Command, error) {
 		}
 
 		searchCmd, err = search.New(c)
+		if err != nil {
+			return nil, tracer.Mask(err)
+		}
+	}
+
+	var verifyCmd *cobra.Command
+	{
+		c := verify.Config{
+			Logger: config.Logger,
+		}
+
+		verifyCmd, err = verify.New(c)
 		if err != nil {
 			return nil, tracer.Mask(err)
 		}
@@ -98,6 +111,7 @@ func New(config Config) (*cobra.Command, error) {
 
 		c.AddCommand(completionCmd)
 		c.AddCommand(searchCmd)
+		c.AddCommand(verifyCmd)
 		c.AddCommand(updateCmd)
 		c.AddCommand(versionCmd)
 	}
